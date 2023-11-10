@@ -173,9 +173,9 @@ class name_com:
         api_url = f"{self.API_BASE_URL}/domains/{self.args.domain}/records/{id}"
 
         # Make the API request with authentication
-        response = requests.delete(api_url)
+        response = requests.delete(api_url, headers=self.headers)
 
-        if response.status_code == 200:
+        if response.status_code == 204:
             return True
         else:
             print(f"Error: Request failed with status code {response.status_code}")
