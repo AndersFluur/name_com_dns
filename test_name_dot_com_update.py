@@ -6,9 +6,126 @@ from name_dot_com_update import name_com, get_resource_record, get_external_ip
 
 class TestNameCom(unittest.TestCase):
     EXTERNAL_IP = "10.0.0.1"
+    API_USERNAME = "your-username"
+    API_TOKEN = "your-token"
+    RECORD_ID = 1234
+    HOST_NAME1 = "host"
 
-    # Add test for List Records
-    # Add test for Get Record
+
+    @patch("name_dot_com_update.requests.get")
+    def test_list_records(self, mock_get):
+        """
+        Test case for the ListRecords method using the Name.com API.
+
+        This test case creates a mock response for a successful API call, and then calls the list_records method of the name_com class. 
+        The method should make a GET request to the Name.com API to retrieve a list of all resource records for the specified domain, and the response should contain a list of resource records.
+        The test case asserts that the GET request was made with the correct URL and headers, and that the list of resource records returned by the method matches the expected value.
+
+        Args:
+            mock_get (MagicMock): A mock object for the requests.get method.
+
+        Returns:
+            None
+        """
+        
+        # Create a mock response for successful API call
+        mock_response = Mock()
+        resource_records = {
+            "records": [
+            {
+                "id": TestNameCom.RECORD_ID, # is path parameter and not required in the request body
+                "domainName": "example.com", # is path parameter and not required in the request body
+                "host": TestNameCom.HOST_NAME1, # Host is the hostname relative to the zone: e.g. for a record for blog.example.org, domain would be "example.org" and host would be "blog".
+                                        # An apex record would be specified by either an empty host "" or "@". A SRV record would be specified by "_{service}._{protocal}.{host}":
+                                        # e.g. "_sip._tcp.phone" for _sip._tcp.phone.example.org.
+                "fqdn": "fqdn1", #is read-only and not required in the request body
+                "type": "A",    # One of A, AAAA, CNAME, MX, NS, SRV, TXT, URL
+                "answer": TestNameCom.EXTERNAL_IP,   # answer is either the IP address for A or AAAA records; the target for ANAME, CNAME, MX, or NS records; the text for TXT records.
+                                        # For SRV records, answer has the following format: "{weight} {port} {target}" e.g. "1 5061 sip.example.org".
+                "ttl": 300,     # TTL is the time this record can be cached for in seconds. Name.com allows a minimum TTL of 300, or 5 minutes.
+                "priority": 10,  # Priority is only required for MX and SRV records. It is an integer between 0 and 65535.
+            },
+            {
+                "id": 5678, # is path parameter and not required in the request body
+                "domainName": "example.com", # is path parameter and not required in the request body
+                "host": "host2", # Host is the hostname relative to the zone: e.g. for a record for blog.example.org, domain would be "example.org" and host would be "blog".
+                                        # An apex record would be specified by either an empty host "" or "@". A SRV record would be specified by "_{service}._{protocal}.{host}":
+                                        # e.g. "_sip._tcp.phone" for _sip._tcp.phone.example.org.
+                "fqdn": "fqdn2", #is read-only and not required in the request body
+                "type": "A",    # One of A, AAAA, CNAME, MX, NS, SRV, TXT, URL
+                "answer": "5.6.7.8",   # answer is either the IP address for A or AAAA records; the target for ANAME, CNAME, MX, or NS records; the text for TXT records.
+                                        # For SRV records, answer has the following format: "{weight} {port} {target}" e.g. "1 5061 sip.example.org".
+                "ttl": 300,     # TTL is the time this record can be cached for in seconds. Name.com allows a minimum TTL of 300, or 5 minutes.
+                "priority": 20,  # Priority is only required for MX and SRV records. It is an integer between 0 and 65535.
+            }
+        ]
+        }
+        mock_response.json.return_value = resource_records
+        mock_response.status_code = 200
+        mock_get.return_value = mock_response
+
+        args = Mock(domain="example.com")
+        name_com_instance = name_com(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, args)
+
+        records = name_com_instance.list_records()
+
+        # Assertions
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0]["id"], TestNameCom.RECORD_ID)
+        self.assertEqual(records[0]["host"], TestNameCom.HOST_NAME1)
+        self.assertEqual(records[0]["answer"], TestNameCom.EXTERNAL_IP)
+        self.assertEqual(records[1]["id"], 5678)
+        self.assertEqual(records[1]["host"], "host2")
+        self.assertEqual(records[1]["answer"], "5.6.7.8")
+        mock_get.assert_called_once_with(
+            f"https://api.name.com/v4/domains/{args.domain}/records",
+            headers=name_com_instance.headers
+        )
+
+    @patch("name_dot_com_update.requests.get")
+    def test_get_record(self, mock_get):
+        """
+        Test case for GetRecord, retrieving a DNS record using the Name.com API.
+
+        This test case creates a mock response for a successful API call and verifies that the correct API endpoint is called
+        with the expected parameters. It also asserts that the record returned by the API matches the expected value.
+
+        Args:
+            mock_get: A mock object for the requests.get method.
+
+        Returns:
+            None
+        """
+        # Create a mock response for successful API call
+        mock_response = Mock()
+        resource_record = {
+            "id": TestNameCom.RECORD_ID, # is path parameter and not required in the request body
+            "domainName": "example.com", # is path parameter and not required in the request body
+            "host": TestNameCom.HOST_NAME1, # Host is the hostname relative to the zone: e.g. for a record for blog.example.org, domain would be "example.org" and host would be "blog".
+                                    # An apex record would be specified by either an empty host "" or "@". A SRV record would be specified by "_{service}._{protocal}.{host}":
+                                    # e.g. "_sip._tcp.phone" for _sip._tcp.phone.example.org.
+            "fqdn": "fqdn", #is read-only and not required in the request body
+            "type": "A",    # One of A, AAAA, CNAME, MX, NS, SRV, TXT, URL
+            "answer": TestNameCom.EXTERNAL_IP,   # answer is either the IP address for A or AAAA records; the target for ANAME, CNAME, MX, or NS records; the text for TXT records.
+                                    # For SRV records, answer has the following format: "{weight} {port} {target}" e.g. "1 5061 sip.example.org".
+            "ttl": 300,     # TTL is the time this record can be cached for in seconds. Name.com allows a minimum TTL of 300, or 5 minutes.
+            "priority": 10,  # Priority is only required for MX and SRV records. It is an integer between 0 and 65535.
+        }
+        mock_response.json.return_value = resource_record
+        mock_response.status_code = 200
+        mock_get.return_value = mock_response
+
+        args = Mock(domain="example.com", name=TestNameCom.HOST_NAME1)
+        name_com_instance = name_com(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, args)
+
+        record = name_com_instance.get_record(TestNameCom.RECORD_ID)
+
+        # Assertions
+        self.assertEqual(record, resource_record)
+        mock_get.assert_called_once_with(
+        f"https://api.name.com/v4/domains/{args.domain}/records/{TestNameCom.RECORD_ID}",
+        headers=name_com_instance.headers
+        )
 
     @patch("name_dot_com_update.requests.post")
     def test_create_record(self, mock_post):
@@ -27,14 +144,14 @@ class TestNameCom(unittest.TestCase):
         # Create a mock response for successful API call
         mock_response = Mock()
         resource_record = {
-            "id": 1234, # is path parameter and not required in the request body
+            "id": TestNameCom.RECORD_ID, # is path parameter and not required in the request body
             "domainName": "example.com", # is path parameter and not required in the request body
-            "host": "host", # Host is the hostname relative to the zone: e.g. for a record for blog.example.org, domain would be "example.org" and host would be "blog".
+            "host": TestNameCom.HOST_NAME1, # Host is the hostname relative to the zone: e.g. for a record for blog.example.org, domain would be "example.org" and host would be "blog".
                                     # An apex record would be specified by either an empty host "" or "@". A SRV record would be specified by "_{service}._{protocal}.{host}":
                                     # e.g. "_sip._tcp.phone" for _sip._tcp.phone.example.org.
             "fqdn": "fqdn", #is read-only and not required in the request body
             "type": "A",    # One of A, AAAA, CNAME, MX, NS, SRV, TXT, URL
-            "answer": "1.2.3.4",   # answer is either the IP address for A or AAAA records; the target for ANAME, CNAME, MX, or NS records; the text for TXT records.
+            "answer": TestNameCom.EXTERNAL_IP,   # answer is either the IP address for A or AAAA records; the target for ANAME, CNAME, MX, or NS records; the text for TXT records.
                                     # For SRV records, answer has the following format: "{weight} {port} {target}" e.g. "1 5061 sip.example.org".
             "ttl": 300,     # TTL is the time this record can be cached for in seconds. Name.com allows a minimum TTL of 300, or 5 minutes.
             "priority": 10,  # Priority is only required for MX and SRV records. It is an integer between 0 and 65535.
@@ -43,15 +160,13 @@ class TestNameCom(unittest.TestCase):
         mock_response.status_code = 200
         mock_post.return_value = mock_response
 
-        api_username = "your-username"
-        api_token = "your-token"
-        args = Mock(domain="example.com", name="host")
-        name_com_instance = name_com(api_username, api_token, args)
+        args = Mock(domain="example.com", name=TestNameCom.HOST_NAME1)
+        name_com_instance = name_com(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, args)
 
         record_id = name_com_instance.create_record(TestNameCom.EXTERNAL_IP)
 
         # Assertions
-        self.assertEqual(record_id, 1234)
+        self.assertEqual(record_id, TestNameCom.RECORD_ID)
         mock_post.assert_called_once_with(
         f"https://api.name.com/v4/domains/{args.domain}/records",
         json=get_resource_record(args.name, TestNameCom.EXTERNAL_IP),
@@ -77,14 +192,14 @@ class TestNameCom(unittest.TestCase):
         # Create a mock response for successful API call
         mock_response = Mock()
         resource_record = {
-            "id": 1234, # is path parameter and not required in the request body
+            "id": TestNameCom.RECORD_ID, # is path parameter and not required in the request body
             "domainName": "example.com", # is path parameter and not required in the request body
-            "host": "host", # Host is the hostname relative to the zone: e.g. for a record for blog.example.org, domain would be "example.org" and host would be "blog".
+            "host": TestNameCom.HOST_NAME1, # Host is the hostname relative to the zone: e.g. for a record for blog.example.org, domain would be "example.org" and host would be "blog".
                                     # An apex record would be specified by either an empty host "" or "@". A SRV record would be specified by "_{service}._{protocal}.{host}":
                                     # e.g. "_sip._tcp.phone" for _sip._tcp.phone.example.org.
             "fqdn": "fqdn", #is read-only and not required in the request body
             "type": "A",    # One of A, AAAA, CNAME, MX, NS, SRV, TXT, URL
-            "answer": "1.2.3.4",   # answer is either the IP address for A or AAAA records; the target for ANAME, CNAME, MX, or NS records; the text for TXT records.
+            "answer": TestNameCom.EXTERNAL_IP,   # answer is either the IP address for A or AAAA records; the target for ANAME, CNAME, MX, or NS records; the text for TXT records.
                                     # For SRV records, answer has the following format: "{weight} {port} {target}" e.g. "1 5061 sip.example.org".
             "ttl": 300,     # TTL is the time this record can be cached for in seconds. Name.com allows a minimum TTL of 300, or 5 minutes.
             "priority": 10,  # Priority is only required for MX and SRV records. It is an integer between 0 and 65535.
@@ -93,17 +208,14 @@ class TestNameCom(unittest.TestCase):
         mock_response.status_code = 200
         mock_put.return_value = mock_response
 
-        api_username = "your-username"
-        api_token = "your-token"
-        args = Mock(domain="example.com", name="host")
-        name_com_instance = name_com(api_username, api_token, args)
+        args = Mock(domain="example.com", name=TestNameCom.HOST_NAME1)
+        name_com_instance = name_com(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, args)
 
-        record_id = 1234
-        name_com_instance.update_record(record_id, TestNameCom.EXTERNAL_IP)
+        name_com_instance.update_record(TestNameCom.RECORD_ID, TestNameCom.EXTERNAL_IP)
 
         # Assertions
         mock_put.assert_called_once_with(
-            f"https://api.name.com/v4/domains/{args.domain}/records/{record_id}",
+            f"https://api.name.com/v4/domains/{args.domain}/records/{TestNameCom.RECORD_ID}",
             json=get_resource_record(args.name, TestNameCom.EXTERNAL_IP),
             headers=name_com_instance.headers
         )
@@ -128,17 +240,14 @@ class TestNameCom(unittest.TestCase):
         mock_response.status_code = 204
         mock_delete.return_value = mock_response
 
-        api_username = "your-username"
-        api_token = "your-token"
-        args = Mock(domain="example.com", name="host")
-        name_com_instance = name_com(api_username, api_token, args)
+        args = Mock(domain="example.com", name=TestNameCom.HOST_NAME1)
+        name_com_instance = name_com(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, args)
 
-        record_id = 1234
-        name_com_instance.delete_record(record_id)
+        name_com_instance.delete_record(TestNameCom.RECORD_ID)
 
         # Assertions
         mock_delete.assert_called_once_with(
-            f"https://api.name.com/v4/domains/{args.domain}/records/{record_id}",
+            f"https://api.name.com/v4/domains/{args.domain}/records/{TestNameCom.RECORD_ID}",
             headers=name_com_instance.headers
         )
         
@@ -167,17 +276,18 @@ class TestNameCom(unittest.TestCase):
     @patch("name_dot_com_update.requests.get")
     def test_get_external_ip_failure(self, mock_get):
         """
-        Test case to verify that the get_external_ip function returns None when the IP retrieval fails.
+        Test case to verify that the get_external_ip function returns empty string when the IP retrieval fails.
         """
         # Create a mock response for unsuccessful IP retrieval
         mock_response = Mock()
         mock_response.status_code = 404
+        mock_response.text = ''
         mock_get.return_value = mock_response
 
         ip = get_external_ip()
 
         # Assertions
-        self.assertIsNone(ip)
+        self.assertEqual(ip, "")
         mock_get.assert_called_once_with("https://ipinfo.io/ip")
 
 
