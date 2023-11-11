@@ -52,7 +52,11 @@ sudo useradd -r -s /bin/false -g namecomgroup namecomuser
 
 # Ubuntu service
 
-Use the service file, 'name_com_dns.service' from this package
+Use the service file, 'name_com_dns.service.org' from this package. Copy it and and modify the copy to include API USER and TOKEN ans environment variables and domain and host as arguments.
+
+````bash
+cp name_com_dns.service.org name_com_dns.service
+````
 
 ````bash
 sudo cp name_com_dns.service /etc/systemd/system/
