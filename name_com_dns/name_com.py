@@ -1,5 +1,12 @@
 import requests
 import base64
+import logging
+
+# Create a logger object
+logger = logging.getLogger(__name__)
+# Set log level
+logger.setLevel(logging.INFO)
+
 
 def log_method_args(method):
     def wrapper(self, *args, **kwargs):
@@ -7,7 +14,7 @@ def log_method_args(method):
         args_str = ", ".join([f"{arg!r}" for arg in args])
         kwargs_str = ", ".join([f"{key}={value!r}" for key, value in kwargs.items()])
         all_args = ", ".join(filter(None, [args_str, kwargs_str]))
-        print(f"Calling {method_name}({all_args})")
+        logger.info(f"Calling {method_name}({all_args})")
         result = method(self, *args, **kwargs)
         return result
     return wrapper
@@ -55,7 +62,7 @@ class NameCom:
             "Authorization": self.get_auth_header(),
             "Content-Type": "application/json"
         }
-        print('NameCom initialized')
+        logger.info('NameCom initialized')
 
     def set_api_base_url(self, api_username):
         if api_username.endswith("-test"):
@@ -87,13 +94,13 @@ class NameCom:
         if response.status_code == 200:
             data = response.json()
             # Process the API response data as needed
-            print("Response Data:")
-            print(data)
+            logger.info("Response Data:")
+            logger.info(data)
             return data["id"]
         else:
-            print(f"Error: Request failed with status code {response.status_code}")
-            print("Response Content:")
-            print(response.text)
+            logger.info(f"Error: Request failed with status code {response.status_code}")
+            logger.info("Response Content:")
+            logger.info(response.text)
             return None
         
     @log_method_args
@@ -109,13 +116,13 @@ class NameCom:
         if response.status_code == 200:
             data = response.json()
             # Process the API response data as needed
-            print("Response Data:")
-            print(data)
+            logger.info("Response Data:")
+            logger.info(data)
             return data["id"]
         else:
-            print(f"Error: Request failed with status code {response.status_code}")
-            print("Response Content:")
-            print(response.text)
+            logger.info(f"Error: Request failed with status code {response.status_code}")
+            logger.info("Response Content:")
+            logger.info(response.text)
             return None
             
     @log_method_args
@@ -129,12 +136,12 @@ class NameCom:
         if response.status_code == 200:
             data = response.json()
             # Process the API response data as needed
-            print(data)
+            logger.info(data)
             return data
         else:
-            print(f"Error: Request failed with status code {response.status_code}")
-            print("Response Content:")
-            print(response.text)
+            logger.info(f"Error: Request failed with status code {response.status_code}")
+            logger.info("Response Content:")
+            logger.info(response.text)
             return None
 
     @log_method_args
@@ -166,12 +173,12 @@ class NameCom:
         if response.status_code == 200:
             data = response.json()
             # Process the API response data as needed
-            print(data["records"])
+            logger.info(data["records"])
             return data["records"]
         else:
-            print(f"Error: Request failed with status code {response.status_code}")
-            print("Response Content:")
-            print(response.text)
+            logger.info(f"Error: Request failed with status code {response.status_code}")
+            logger.info("Response Content:")
+            logger.info(response.text)
             return None
         
     @log_method_args
@@ -185,9 +192,9 @@ class NameCom:
         if response.status_code == 204:
             return True
         else:
-            print(f"Error: Request failed with status code {response.status_code}")
-            print("Response Content:")
-            print(response.text)
+            logger.info(f"Error: Request failed with status code {response.status_code}")
+            logger.info("Response Content:")
+            logger.info(response.text)
             return None
 
     @log_method_args
@@ -198,7 +205,7 @@ class NameCom:
         records = self.list_records()
         if records:
             for record in records:
-                print(record)
+                logger.info(record)
                 if record["type"] == "A" and record["host"] == self.host:
                     return record
         else:
