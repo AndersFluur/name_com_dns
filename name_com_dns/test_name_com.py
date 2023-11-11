@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 import unittest
 from unittest.mock import Mock, patch
-from name_dot_com_update import name_com, get_resource_record, get_external_ip
+from name_com_dns.name_com import NameCom, get_resource_record
+from name_dot_com_update import get_external_ip
 
 
 class TestNameCom(unittest.TestCase):
@@ -9,10 +10,11 @@ class TestNameCom(unittest.TestCase):
     API_USERNAME = "your-username"
     API_TOKEN = "your-token"
     RECORD_ID = 1234
+    DOMAIN="example.com"
     HOST_NAME1 = "host"
 
 
-    @patch("name_dot_com_update.requests.get")
+    @patch("name_com.requests.get")
     def test_list_records(self, mock_get):
         """
         Test case for the ListRecords method using the Name.com API.
@@ -64,8 +66,7 @@ class TestNameCom(unittest.TestCase):
         mock_response.status_code = 200
         mock_get.return_value = mock_response
 
-        args = Mock(domain="example.com")
-        name_com_instance = name_com(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, args)
+        name_com_instance = NameCom(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, TestNameCom.DOMAIN, TestNameCom.HOST_NAME1)
 
         records = name_com_instance.list_records()
 
@@ -78,11 +79,11 @@ class TestNameCom(unittest.TestCase):
         self.assertEqual(records[1]["host"], "host2")
         self.assertEqual(records[1]["answer"], "5.6.7.8")
         mock_get.assert_called_once_with(
-            f"https://api.name.com/v4/domains/{args.domain}/records",
+            f"https://api.name.com/v4/domains/{TestNameCom.DOMAIN}/records",
             headers=name_com_instance.headers
         )
 
-    @patch("name_dot_com_update.requests.get")
+    @patch("name_com.requests.get")
     def test_get_record(self, mock_get):
         """
         Test case for GetRecord, retrieving a DNS record using the Name.com API.
@@ -115,19 +116,18 @@ class TestNameCom(unittest.TestCase):
         mock_response.status_code = 200
         mock_get.return_value = mock_response
 
-        args = Mock(domain="example.com", name=TestNameCom.HOST_NAME1)
-        name_com_instance = name_com(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, args)
+        name_com_instance = NameCom(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, TestNameCom.DOMAIN, TestNameCom.HOST_NAME1)
 
         record = name_com_instance.get_record(TestNameCom.RECORD_ID)
 
         # Assertions
         self.assertEqual(record, resource_record)
         mock_get.assert_called_once_with(
-        f"https://api.name.com/v4/domains/{args.domain}/records/{TestNameCom.RECORD_ID}",
+        f"https://api.name.com/v4/domains/{TestNameCom.DOMAIN}/records/{TestNameCom.RECORD_ID}",
         headers=name_com_instance.headers
         )
 
-    @patch("name_dot_com_update.requests.post")
+    @patch("name_com.requests.post")
     def test_create_record(self, mock_post):
         """
         Test case for CreateRecord, creating a DNS record using the Name.com API.
@@ -160,20 +160,19 @@ class TestNameCom(unittest.TestCase):
         mock_response.status_code = 200
         mock_post.return_value = mock_response
 
-        args = Mock(domain="example.com", name=TestNameCom.HOST_NAME1)
-        name_com_instance = name_com(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, args)
+        name_com_instance = NameCom(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, TestNameCom.DOMAIN, TestNameCom.HOST_NAME1)
 
         record_id = name_com_instance.create_record(TestNameCom.EXTERNAL_IP)
 
         # Assertions
         self.assertEqual(record_id, TestNameCom.RECORD_ID)
         mock_post.assert_called_once_with(
-        f"https://api.name.com/v4/domains/{args.domain}/records",
-        json=get_resource_record(args.name, TestNameCom.EXTERNAL_IP),
+        f"https://api.name.com/v4/domains/{TestNameCom.DOMAIN}/records",
+        json=get_resource_record(id = 0, host=TestNameCom.HOST_NAME1, ip=TestNameCom.EXTERNAL_IP),
         headers=name_com_instance.headers
         )
 
-    @patch("name_dot_com_update.requests.put")
+    @patch("name_com.requests.put")
     def test_update_record(self, mock_put):
         """
         Test case for the UpdateRecord method using the Name.com API.
@@ -208,19 +207,18 @@ class TestNameCom(unittest.TestCase):
         mock_response.status_code = 200
         mock_put.return_value = mock_response
 
-        args = Mock(domain="example.com", name=TestNameCom.HOST_NAME1)
-        name_com_instance = name_com(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, args)
+        name_com_instance = NameCom(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, TestNameCom.DOMAIN, TestNameCom.HOST_NAME1)
 
         name_com_instance.update_record(TestNameCom.RECORD_ID, TestNameCom.EXTERNAL_IP)
 
         # Assertions
         mock_put.assert_called_once_with(
-            f"https://api.name.com/v4/domains/{args.domain}/records/{TestNameCom.RECORD_ID}",
-            json=get_resource_record(args.name, TestNameCom.EXTERNAL_IP),
+            f"https://api.name.com/v4/domains/{TestNameCom.DOMAIN}/records/{TestNameCom.RECORD_ID}",
+            json=get_resource_record(id = 0, host=TestNameCom.HOST_NAME1, ip=TestNameCom.EXTERNAL_IP),
             headers=name_com_instance.headers
         )
 
-    @patch("name_dot_com_update.requests.delete")
+    @patch("name_com.requests.delete")
     def test_delete_record(self, mock_delete):
         """
         Test case for the DeleteRecord method using the Name.com API.
@@ -240,14 +238,13 @@ class TestNameCom(unittest.TestCase):
         mock_response.status_code = 204
         mock_delete.return_value = mock_response
 
-        args = Mock(domain="example.com", name=TestNameCom.HOST_NAME1)
-        name_com_instance = name_com(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, args)
+        name_com_instance = NameCom(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, TestNameCom.DOMAIN, TestNameCom.HOST_NAME1)
 
         name_com_instance.delete_record(TestNameCom.RECORD_ID)
 
         # Assertions
         mock_delete.assert_called_once_with(
-            f"https://api.name.com/v4/domains/{args.domain}/records/{TestNameCom.RECORD_ID}",
+            f"https://api.name.com/v4/domains/{TestNameCom.DOMAIN}/records/{TestNameCom.RECORD_ID}",
             headers=name_com_instance.headers
         )
         
