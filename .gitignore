@@ -1,1 +1,97 @@
-__pycache__
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.env
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+
+# Translations
+*.mo
+*.pot
+
+# Django
+*.log
+local_settings.py
+
+# Flask
+instance/
+.webassets-cache
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Caches
+__pycache__/
+Jenkins/
+*.swp
+*.swo
+*.swm
+Thumbs.db
+.DS_Store
+
+# Editors
+*~
+*.bak
+*.backup
+*.class
+*.DS_Store
+*.log
+*.orig
+*.rej
+*.swo
+*.swp
+*.tmp
+
+# IDE
+.idea/
+.vscode/
+
+# Environment
+.venv
+venv/
+.env
+

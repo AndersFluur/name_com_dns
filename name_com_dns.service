@@ -1,0 +1,16 @@
+# Modify YOUR_DOMAIN, YOUR_HOSTNAME, YOUR_API_USER, YOUR_API_TOKEN
+[Unit]
+Description=A script to run automatic dynamic DNS update of name.com DNS service, using their API
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 -m name_com_dns.name_dot_com_update --domain YOUR_DOMAIN --name YOUR_HOSTNAME  --interval 300 
+WorkingDirectory=/path/to/your/script
+User=namecomuser
+Group=namecomgroup
+Restart=always
+Environment=API_USER=YOUR_API_USER
+Environment=API_TOKEN=YOUR_API_TOKEN
+
+[Install]
+WantedBy=multi-user.target
