@@ -1,6 +1,6 @@
 # Description: Update DNS records with external IP address
 
-from name_com_dns.name_com import NameCom
+from namecom_dns.namecom import NameCom
 import requests
 import argparse
 import time
@@ -22,9 +22,13 @@ def get_external_ip():
         return ""
 
 
-def create_logging_handler():
+def create_logging_handler(logdir="./"):
     # Create a file handler and set its log level
-    file_handler = logging.FileHandler('name_com_dns.log')
+    if logdir:
+        log_file = os.path.join(logdir, 'namecom.log')
+    else:
+        log_file = 'namecom.log'
+    file_handler = logging.FileHandler(log_file)
     file_handler.setLevel(logging.INFO)
 
     # Create a log format
@@ -41,28 +45,29 @@ def main():
     parser.add_argument("-d", "--domain", required=True, help="Domain name")
     parser.add_argument("-i", "--interval", type=int, default=60, help="Polling interval in seconds")
     parser.add_argument("-t", "--test", type=bool, default=False, help="Test mode. Run loop interval number of times and exit.")
-    parser.add_argument("-l", "--log", type=bool, default=False, help="Log to name_com_dns.log")
+    parser.add_argument("-l", "--log", action="store_true", help="Log to namecom_dns.log")
+    parser.add_argument("--logdir", type=str, default="./", help="Log to namecom_dns.log in the specified directory")
 
     
     args = parser.parse_args()
 
     if args.log:
-        create_logging_handler()
+        create_logging_handler(args.logdir)
 
     # Name.com API credentials
-    API_USERNAME_VAR = "API_USERNAME"
-    API_TOKEN_VAR = "API_TOKEN"
+    APIUSERNAME_VAR = "NAMECOM_APIUSERNAME"
+    APITOKEN_VAR = "NAMECOM_APITOKEN"
 
     # Check and assign API_USERNAME
-    api_username = os.environ.get(API_USERNAME_VAR)
+    api_username = os.environ.get(APIUSERNAME_VAR)
     if not api_username:
-        logger.info(f"Error: Environment variable {API_USERNAME_VAR} is not set.")
+        logger.info(f"Error: Environment variable {APIUSERNAME_VAR} is not set.")
         sys.exit(1)
 
     # Check and assign API_TOKEN
-    api_token = os.environ.get(API_TOKEN_VAR)
+    api_token = os.environ.get(APITOKEN_VAR)
     if not api_token:
-        logger.info(f"Error: Environment variable {API_TOKEN_VAR} is not set.")
+        logger.info(f"Error: Environment variable {APITOKEN_VAR} is not set.")
         sys.exit(1)
 
     NameDotCom = NameCom(api_username, api_token, args.domain, args.name)

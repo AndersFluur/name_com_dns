@@ -1,8 +1,7 @@
-#!/usr/bin/python3
 import unittest
 from unittest.mock import Mock, patch
-from name_com_dns.name_com import NameCom, get_resource_record
-from name_dot_com_update import get_external_ip
+from namecom_dns.namecom import NameCom, get_resource_record
+from namecom_dns.namecom_update import get_external_ip
 
 
 class TestNameCom(unittest.TestCase):
@@ -14,12 +13,12 @@ class TestNameCom(unittest.TestCase):
     HOST_NAME1 = "host"
 
 
-    @patch("name_com.requests.get")
+    @patch("namecom_dns.namecom.requests.get")
     def test_list_records(self, mock_get):
         """
         Test case for the ListRecords method using the Name.com API.
 
-        This test case creates a mock response for a successful API call, and then calls the list_records method of the name_com class. 
+        This test case creates a mock response for a successful API call, and then calls the list_records method of the namecom class. 
         The method should make a GET request to the Name.com API to retrieve a list of all resource records for the specified domain, and the response should contain a list of resource records.
         The test case asserts that the GET request was made with the correct URL and headers, and that the list of resource records returned by the method matches the expected value.
 
@@ -66,9 +65,9 @@ class TestNameCom(unittest.TestCase):
         mock_response.status_code = 200
         mock_get.return_value = mock_response
 
-        name_com_instance = NameCom(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, TestNameCom.DOMAIN, TestNameCom.HOST_NAME1)
+        namecom_instance = NameCom(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, TestNameCom.DOMAIN, TestNameCom.HOST_NAME1)
 
-        records = name_com_instance.list_records()
+        records = namecom_instance.list_records()
 
         # Assertions
         self.assertEqual(len(records), 2)
@@ -80,10 +79,10 @@ class TestNameCom(unittest.TestCase):
         self.assertEqual(records[1]["answer"], "5.6.7.8")
         mock_get.assert_called_once_with(
             f"https://api.name.com/v4/domains/{TestNameCom.DOMAIN}/records",
-            headers=name_com_instance.headers
+            headers=namecom_instance.headers
         )
 
-    @patch("name_com.requests.get")
+    @patch("namecom_dns.namecom.requests.get")
     def test_get_record(self, mock_get):
         """
         Test case for GetRecord, retrieving a DNS record using the Name.com API.
@@ -116,18 +115,18 @@ class TestNameCom(unittest.TestCase):
         mock_response.status_code = 200
         mock_get.return_value = mock_response
 
-        name_com_instance = NameCom(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, TestNameCom.DOMAIN, TestNameCom.HOST_NAME1)
+        namecom_instance = NameCom(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, TestNameCom.DOMAIN, TestNameCom.HOST_NAME1)
 
-        record = name_com_instance.get_record(TestNameCom.RECORD_ID)
+        record = namecom_instance.get_record(TestNameCom.RECORD_ID)
 
         # Assertions
         self.assertEqual(record, resource_record)
         mock_get.assert_called_once_with(
         f"https://api.name.com/v4/domains/{TestNameCom.DOMAIN}/records/{TestNameCom.RECORD_ID}",
-        headers=name_com_instance.headers
+        headers=namecom_instance.headers
         )
 
-    @patch("name_com.requests.post")
+    @patch("namecom_dns.namecom.requests.post")
     def test_create_record(self, mock_post):
         """
         Test case for CreateRecord, creating a DNS record using the Name.com API.
@@ -160,24 +159,24 @@ class TestNameCom(unittest.TestCase):
         mock_response.status_code = 200
         mock_post.return_value = mock_response
 
-        name_com_instance = NameCom(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, TestNameCom.DOMAIN, TestNameCom.HOST_NAME1)
+        namecom_instance = NameCom(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, TestNameCom.DOMAIN, TestNameCom.HOST_NAME1)
 
-        record_id = name_com_instance.create_record(TestNameCom.EXTERNAL_IP)
+        record_id = namecom_instance.create_record(TestNameCom.EXTERNAL_IP)
 
         # Assertions
         self.assertEqual(record_id, TestNameCom.RECORD_ID)
         mock_post.assert_called_once_with(
         f"https://api.name.com/v4/domains/{TestNameCom.DOMAIN}/records",
         json=get_resource_record(id = 0, host=TestNameCom.HOST_NAME1, ip=TestNameCom.EXTERNAL_IP),
-        headers=name_com_instance.headers
+        headers=namecom_instance.headers
         )
 
-    @patch("name_com.requests.put")
+    @patch("namecom_dns.namecom.requests.put")
     def test_update_record(self, mock_put):
         """
         Test case for the UpdateRecord method using the Name.com API.
 
-        This test case creates a mock response for a successful API call, and then calls the update_record method of the name_com class with a record ID and an external IP address. 
+        This test case creates a mock response for a successful API call, and then calls the update_record method of the namecom class with a record ID and an external IP address. 
         The method should make a PUT request to the Name.com API to update the record with the specified ID, and the request body should contain the updated resource record with the new IP address. 
         The test case asserts that the PUT request was made with the correct URL, request body, and headers.
 
@@ -207,23 +206,23 @@ class TestNameCom(unittest.TestCase):
         mock_response.status_code = 200
         mock_put.return_value = mock_response
 
-        name_com_instance = NameCom(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, TestNameCom.DOMAIN, TestNameCom.HOST_NAME1)
+        namecom_instance = NameCom(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, TestNameCom.DOMAIN, TestNameCom.HOST_NAME1)
 
-        name_com_instance.update_record(TestNameCom.RECORD_ID, TestNameCom.EXTERNAL_IP)
+        namecom_instance.update_record(TestNameCom.RECORD_ID, TestNameCom.EXTERNAL_IP)
 
         # Assertions
         mock_put.assert_called_once_with(
             f"https://api.name.com/v4/domains/{TestNameCom.DOMAIN}/records/{TestNameCom.RECORD_ID}",
             json=get_resource_record(id = 0, host=TestNameCom.HOST_NAME1, ip=TestNameCom.EXTERNAL_IP),
-            headers=name_com_instance.headers
+            headers=namecom_instance.headers
         )
 
-    @patch("name_com.requests.delete")
+    @patch("namecom_dns.namecom.requests.delete")
     def test_delete_record(self, mock_delete):
         """
         Test case for the DeleteRecord method using the Name.com API.
 
-        This test case creates a mock response for a successful API call, and then calls the delete_record method of the name_com class with a record ID. 
+        This test case creates a mock response for a successful API call, and then calls the delete_record method of the namecom class with a record ID. 
         The method should make a DELETE request to the Name.com API to delete the record with the specified ID. 
         The test case asserts that the DELETE request was made with the correct URL and headers.
 
@@ -238,17 +237,17 @@ class TestNameCom(unittest.TestCase):
         mock_response.status_code = 204
         mock_delete.return_value = mock_response
 
-        name_com_instance = NameCom(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, TestNameCom.DOMAIN, TestNameCom.HOST_NAME1)
+        namecom_instance = NameCom(TestNameCom.API_USERNAME, TestNameCom.API_TOKEN, TestNameCom.DOMAIN, TestNameCom.HOST_NAME1)
 
-        name_com_instance.delete_record(TestNameCom.RECORD_ID)
+        namecom_instance.delete_record(TestNameCom.RECORD_ID)
 
         # Assertions
         mock_delete.assert_called_once_with(
             f"https://api.name.com/v4/domains/{TestNameCom.DOMAIN}/records/{TestNameCom.RECORD_ID}",
-            headers=name_com_instance.headers
+            headers=namecom_instance.headers
         )
         
-    @patch("name_dot_com_update.requests.get")
+    @patch("namecom_update.requests.get")
     def test_get_external_ip(self, mock_get):
         """
         Test the get_external_ip function.
@@ -270,7 +269,7 @@ class TestNameCom(unittest.TestCase):
         self.assertEqual(ip, TestNameCom.EXTERNAL_IP)
         mock_get.assert_called_once_with("https://ipinfo.io/ip")
 
-    @patch("name_dot_com_update.requests.get")
+    @patch("namecom_update.requests.get")
     def test_get_external_ip_failure(self, mock_get):
         """
         Test case to verify that the get_external_ip function returns empty string when the IP retrieval fails.
