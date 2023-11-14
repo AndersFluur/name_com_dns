@@ -3,12 +3,17 @@ Description=A script to run automatic dynamic DNS update of name.com DNS service
 After=network.target
 
 [Service]
-ExecStart=/home/anders/namecom_dns/venv/bin/python -m namecom_dns.namecom_update --log --logdir $NAMECOM_LOGDIR --domain $NAMECOM_DOMAIN --name $NAMECOM_HOSTNAME --interval $NAMECOM_INTERVAL
+Type=simple
+EnvironmentFile=/etc/namecom/namecom_dns.cfg
+ExecStartPre=/usr/bin/mkdir -m 775 -p ${NAMECOM_LOGDIR}
+ExecStartPre=/usr/bin/chown namecomuser.namecomgroup ${NAMECOM_LOGDIR}
+ExecStart=/bin/bash -a -c "source /etc/namecom/namecom_dns.cfg && $NAMECOM_REPO/venv/bin/python3 -m namecom_dns.namecom_update --log --logdir $NAMECOM_LOGDIR --domain $NAMECOM_DOMAIN --name $NAMECOM_HOSTNAME --interval $NAMECOM_INTERVAL"
 WorkingDirectory=/etc/namecom
-User=$NAMECOM_USER
-Group=$NAMECOM_GROUP
+User=namecomuser
+Group=namecomgroup
 Restart=always
-EnvironmentFile=/etc/default/namecom_dns
+StandardOutput=file:${NAMECOM_LOGDIR}/stdout.log
+StandardError=file:${NAMECOM_LOGDIR}/stderr.log
 
 [Install]
 WantedBy=multi-user.target

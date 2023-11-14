@@ -20,7 +20,6 @@ def log_method_args(method):
     return wrapper
 
 def get_resource_record(id = 0, host='', ip=''):
-
     # Define the data for updating an "A" record
     data = {
         "id": id, # Id is path parameter and not required in the request body
@@ -148,6 +147,7 @@ class NameCom:
     def list_records(self):
         """"
          Return a List all records for a domain
+         
          example:
          {
             "records": [
@@ -204,11 +204,20 @@ class NameCom:
         """
         records = self.list_records()
         if records:
+            print(f"records: {records}")
             for record in records:
                 logger.info(record)
-                if record["type"] == "A" and record["host"] == self.host:
-                    return record
-        else:
+                if record["type"] == "A":
+                    if (not self.host or self.host == "" or self.host == "@") and not ("host" in record):
+                            return record # apex record
+                    else: # host is in record
+                        if record["host"] == self.host:
+                            return record # matching host record
+                        else:
+                            return None
+                else: # type is not "A"
+                    return None
+        else: # no records
             return None
         
     @log_method_args
