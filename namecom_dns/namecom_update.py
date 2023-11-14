@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # Description: Update DNS records with external IP address
 
 from namecom_dns.namecom import NameCom
@@ -25,6 +26,8 @@ def get_external_ip():
 def create_logging_handler(logdir="./"):
     # Create a file handler and set its log level
     if logdir:
+        if not os.path.exists(logdir): # Create the log directory if it does not exist
+            os.makedirs(logdir)
         log_file = os.path.join(logdir, 'namecom.log')
     else:
         log_file = 'namecom.log'
@@ -41,7 +44,7 @@ def create_logging_handler(logdir="./"):
 def main():                         
     # Define and parse command-line arguments
     parser = argparse.ArgumentParser(description="Update DNS records with external IP address")
-    parser.add_argument("-n", "--name", required=True, help="Host name")
+    parser.add_argument("-n", "--name", required=False, help="Host name")
     parser.add_argument("-d", "--domain", required=True, help="Domain name")
     parser.add_argument("-i", "--interval", type=int, default=60, help="Polling interval in seconds")
     parser.add_argument("-t", "--test", type=bool, default=False, help="Test mode. Run loop interval number of times and exit.")
@@ -70,6 +73,8 @@ def main():
         logger.info(f"Error: Environment variable {APITOKEN_VAR} is not set.")
         sys.exit(1)
 
+    logger.info(f"Starting service")   
+
     NameDotCom = NameCom(api_username, api_token, args.domain, args.name)
     
     # Set the id of DNS record for the host from start. It will be challenged below.
@@ -88,10 +93,10 @@ def main():
         # There should be a record answer and an id
         current_ip = record["answer"]
         id = record["id"]
-        logger.info(f"Initial Read if ID: {id}  IP: {current_ip}")
+        logger.info(f"Initial Read of ID: {id}  IP: {current_ip}")
     else: # No DNS record for the host is found. Create one.
         id = NameDotCom.create_record(current_ip)
-        logger.info(f"Created a new A record with IP: {current_ip} and ID: {id}")
+        logger.info(f"Created a new A record for FQDN: {args.name}.{args.domain} with IP: {current_ip} and ID: {id}")
 
 
     if args.test:
@@ -117,7 +122,7 @@ def main():
             logger.info(f"Test mode. Run loop finished, exiting! loop={number_of_loops}")
             sys.exit(0)
         else:
-            logger.info(f"Sleeping for {args.interval} seconds")
+            # Don't spam the log logger.info(f"Sleeping for {args.interval} seconds")
             time.sleep(args.interval)
 
 if __name__ == "__main__":

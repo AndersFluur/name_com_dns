@@ -2,7 +2,7 @@
 
 A script to run automatic dynamic DNS update of name.com DNS service, using their API.
 The external IP address is read from the internet using https://ipinfo.io/ip
-Loops forever, polling of external IP address with interval from command line.
+Loops forever, polling of external IP address with interval read from command line.
 
 
 # Usage
@@ -21,7 +21,7 @@ options:
                         Polling interval in seconds
   -t TEST, --test TEST  Test mode. Run loop interval number of times and exit.
   -l LOG, --log LOG     Log to namecom_dns.log
-  --logdir LOGDIR       Log to namecom_dns.log in the specified directory
+  --logdir LOGDIR       Log to namecom_dns.log in the specvified directory
 ```
 
 # Running unit tests
@@ -43,7 +43,7 @@ The package is stored as a versioned file: ```./dist/namecom_dns-${MAJOR}.${MINO
 
 ## Configure Environment file
 
-These are the required settings in *namecom_env*:
+These are the required settings in *namecom_dns.cfg*:
 
 NAMECOM_REPO="location of namecom_dns repo"
 NAMECOM_DOMAIN=YOUR_DOMAIN
@@ -51,13 +51,15 @@ NAMECOM_HOSTNAME=YOUR_HOSTNAME
 NAMECOM_APIUSERNAME=YOUR_APIUSERNAME
 NAMECOM_APITOKEN=YOUR_APITOKEN
 
+Set NAMECOM_HOSTNAME=@ for the apex domain (A record for example.com)
+
 Edit the environment file:
 ```bash
 
-sudo mkdir -p /etc/namecom/ && sudo cp namecom_env /etc/namecom/
+sudo mkdir -p /etc/namecom/ && sudo cp namecom_dns.cfg /etc/namecom/
 sudo chown -R namecomuser.namecomgroup /etc/namecom/
 sudo chmod -R ug+rx,o-rwx /etc/namecom/
-sudo nano /etc/namecom/namecom_env
+sudo nano /etc/namecom/namecom_dns.cfg                                # Edit as commented above!
 ```
 ## Install Python package
 
@@ -94,13 +96,16 @@ Use the service file, 'namecom_dns.service.org' from this package. Copy it and a
 ```bash
 
 sudo cp namecom_dns.service /etc/systemd/system/
-sudo systemctl daemon-reload                # Reload the systemd manager configuration
 sudo systemctl enable namecom_dns.service  # Enable your service to start on boot
+sudo systemctl daemon-reload               # Reload the systemd manager configuration
 sudo systemctl start namecom_dns.service   # Start service
 sudo systemctl status namecom_dns.service  # Check status
 
 # View log from service
 sudo journalctl -u namecom_dns.service
+
+# Show params of the service
+sudo systemctl show namecom_dns.service
 
 # Restore from the sourced VENV
 deactivate
