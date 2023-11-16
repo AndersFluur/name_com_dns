@@ -1,8 +1,8 @@
 # namecom_dns
 
 A script to run automatic dynamic DNS update of name.com DNS service, using their API.
-The external IP address is read from the internet using https://ipinfo.io/ip
-Loops forever, polling of external IP address with interval read from command line.
+The external IP address is read from the internet using https://ipinfo.io/ip .
+It loops forever, polling of external IP address with interval read from command line.
 
 
 # Usage
@@ -45,11 +45,13 @@ The package is stored as a versioned file: ```./dist/namecom_dns-${MAJOR}.${MINO
 
 These are the required settings in *namecom_dns.cfg*:
 
+```bash
 NAMECOM_REPO="location of namecom_dns repo"
 NAMECOM_DOMAIN=YOUR_DOMAIN
 NAMECOM_HOSTNAME=YOUR_HOSTNAME
 NAMECOM_APIUSERNAME=YOUR_APIUSERNAME
 NAMECOM_APITOKEN=YOUR_APITOKEN
+```
 
 Set NAMECOM_HOSTNAME=@ for the apex domain (A record for example.com)
 
